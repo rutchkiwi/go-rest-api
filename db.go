@@ -1,8 +1,8 @@
-package db
+package main
 
 import (
 	"database/sql"
-	"log"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,7 +14,7 @@ type User struct {
 	//	id       int64
 }
 
-func writeNewUser(username string) int64 {
+func dbWriteNewUser(username string) int64 {
 	// todo: make configurable, so test can use in memory db
 	db, err := sql.Open("sqlite3", "./foo.db")
 	checkErr(err)
@@ -29,11 +29,13 @@ func writeNewUser(username string) int64 {
 
 	id, err := res.LastInsertId()
 	checkErr(err)
+	fmt.Printf("put db with id %v\n", id)
 
 	return id
 }
 
-func getUser(id int64) User {
+func dbGetUser(id int64) (User, error) {
+	fmt.Printf("getting db with id %v\n", id)
 	db, err := sql.Open("sqlite3", "./foo.db")
 	checkErr(err)
 	defer db.Close()
@@ -42,10 +44,11 @@ func getUser(id int64) User {
 
 	var username string
 	if err := row.Scan(&username); err != nil {
-		log.Fatal(err)
+		// TODO: bad error handling here
+		return User{}, err
 	}
 
-	return User{username}
+	return User{username}, nil
 }
 
 func checkErr(err error) {

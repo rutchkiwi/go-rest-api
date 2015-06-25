@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // This example show how to test one particular RouteFunction (getIt)
@@ -26,19 +28,22 @@ import (
 // }
 
 func TestGetNonExistingUser(t *testing.T) {
-	getHttpReq, _ := http.NewRequest("GET", "9999", nil)
-	getReq := restful.NewRequest(getHttpReq)
+	buildWebservice()
 
-	getRecorder := new(httptest.ResponseRecorder)
-	getResp := restful.NewResponse(getRecorder)
+	getHttpReq, _ := http.NewRequest("GET", "/9999", nil)
 
-	getUser(getReq, getResp)
+	httpWriter := httptest.NewRecorder()
 
-	assert.Equal(t, 404, getRecorder.Code)
+	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
+
+	fmt.Println(httpWriter)
+	assert.Equal(t, 404, httpWriter.Code)
 
 }
 
 func TestPostAndGetUSer(t *testing.T) {
+
+	buildWebservice()
 
 	// bodyReader := strings.NewReader("<Sample><Value>42</Value></Sample>")
 	// 	httpRequest, _ := http.NewRequest("GET", "/test/THIS", bodyReader)
@@ -48,25 +53,34 @@ func TestPostAndGetUSer(t *testing.T) {
 	bodyReader := strings.NewReader(`{"username":"viktor"}`)
 	httpRequest, _ := http.NewRequest("POST", "/", bodyReader)
 	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
-	req := restful.NewRequest(httpRequest)
+	// req := restful.NewRequest(httpRequest)
 
-	recorder := new(httptest.ResponseRecorder)
-	resp := restful.NewResponse(recorder)
+	// recorder := new(httptest.ResponseRecorder)
+	// resp := restful.NewResponse(recorder)
 
-	postUser(req, resp)
+	httpWriter := httptest.NewRecorder()
 
-	assert.Equal(t, 201, recorder.Code)
+	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
+
+	require.Equal(t, 201, httpWriter.Code)
+
 	var location string
-	location = recorder.Header().Get("location")
+	location = httpWriter.Header().Get("location")
+	fmt.Println("location:")
+	fmt.Println("/" + location)
 
-	getHttpReq, _ := http.NewRequest("GET", location, nil)
-	getReq := restful.NewRequest(getHttpReq)
+	getHttpReq, err := http.NewRequest("GET", "/"+location, nil)
+	require.NoError(t, err, "test error")
+	// getReq := restful.NewRequest(getHttpReq)
 
-	getRecorder := new(httptest.ResponseRecorder)
-	getResp := restful.NewResponse(getRecorder)
+	fmt.Println("222")
 
-	postUser(getReq, getResp)
+	httpWriter = httptest.NewRecorder()
 
-	assert.Equal(t, 200, getRecorder.Code)
+	fmt.Println("3333")
+	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
+	fmt.Println("4444")
+
+	assert.Equal(t, 200, httpWriter.Code)
 
 }

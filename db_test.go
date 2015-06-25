@@ -1,4 +1,4 @@
-package db
+package main
 
 import (
 	"testing"
@@ -7,11 +7,11 @@ import (
 )
 
 func TestDbWrite(t *testing.T) {
-	writeNewUser("user1")
+	dbWriteNewUser("user1")
 }
 
 func TestDbWriteAndRead(t *testing.T) {
-	id := writeNewUser("user1")
-	user := getUser(id)
+	id := dbWriteNewUser("user1")
+	user, _ := dbGetUser(id)
 	assert.Equal(t, "user1", user.username)
 }

@@ -1,8 +1,11 @@
 package main
 
 import (
-	"io"
+	"fmt"
 	"net/http"
+	"strconv"
+
+	// "lib/db"
 
 	"github.com/emicklei/go-restful"
 )
@@ -11,21 +14,63 @@ import (
 //
 // GET http://localhost:8080/hello
 
+// ws.Route(ws.GET("/{user-id}").To(u.findUser))  // u is a UserResource
+
+// ...
+
+// // GET http://localhost:8080/users/1
+// func (u UserResource) findUser(request *restful.Request, response *restful.Response) {
+// 	id := request.PathParameter("user-id")
+// 	...
+// }
+
 func main() {
-	ws := new(restful.WebService)
-	ws.Route(ws.GET("/hello").To(hello))
-	restful.Add(ws)
+	buildWebservice()
 	http.ListenAndServe(":8080", nil)
 }
 
-func hello(req *restful.Request, resp *restful.Response) {
-	io.WriteString(resp, "world")
+func buildWebservice() {
+	ws := new(restful.WebService)
+	ws.Route(ws.GET("/{user-id}").To(getUser))
+	ws.Route(ws.POST("/").To(postUser))
+	restful.Add(ws)
+}
+
+func getUser(req *restful.Request, resp *restful.Response) {
+	fmt.Println("getting user")
+	restful.DefaultResponseContentType(restful.MIME_JSON)
+	fmt.Printf("getuser by string id %v\n", req.PathParameter("user-id"))
+
+	id, err := strconv.ParseInt(req.PathParameter("user-id"), 0, 64)
+	if err != nil {
+		fmt.Println(err)
+		//TODO: bad error handling here
+		resp.WriteHeader(http.StatusBadRequest)
+		resp.WriteEntity("malformed id") //TODO: json?	}
+		return
+	}
+
+	fmt.Printf("getuser by id %v\n", id)
+	user, err := dbGetUser(id)
+	if err != nil {
+		fmt.Println(err)
+		//TODO: bad error handling here
+		resp.WriteHeader(http.StatusNotFound)
+		resp.WriteEntity("no such user") //TODO: json?
+	} else {
+		resp.WriteEntity(user)
+	}
 }
 
 func postUser(req *restful.Request, resp *restful.Response) {
+	fmt.Println("posting user")
+
 	restful.DefaultResponseContentType(restful.MIME_JSON)
-	resp.AddHeader("location", "todo")
+	id := dbWriteNewUser("todo")
+	resp.AddHeader("location", strconv.FormatInt(id, 10))
 	resp.WriteHeader(http.StatusCreated)
 	user := User{"todo"}
 	resp.WriteEntity(user)
+	fmt.Println("posting user done")
+
 }
