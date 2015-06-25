@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/emicklei/go-restful"
 	"io"
 	"net/http"
+
+	"github.com/emicklei/go-restful"
 )
 
 // This example shows the minimal code needed to get a restful.WebService working.
@@ -19,4 +20,12 @@ func main() {
 
 func hello(req *restful.Request, resp *restful.Response) {
 	io.WriteString(resp, "world")
+}
+
+func postUser(req *restful.Request, resp *restful.Response) {
+	restful.DefaultResponseContentType(restful.MIME_JSON)
+	resp.AddHeader("location", "todo")
+	resp.WriteHeader(http.StatusCreated)
+	user := User{"todo"}
+	resp.WriteEntity(user)
 }

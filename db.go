@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"database/sql"
@@ -15,6 +15,7 @@ type User struct {
 }
 
 func writeNewUser(username string) int64 {
+	// todo: make configurable, so test can use in memory db
 	db, err := sql.Open("sqlite3", "./foo.db")
 	checkErr(err)
 	defer db.Close()
