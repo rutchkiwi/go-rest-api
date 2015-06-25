@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,21 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// This example show how to test one particular RouteFunction (getIt)
-// It uses the httptest.ResponseRecorder to capture output
-
-// func TestPostUser(t *testing.T) {
-// 	httpReq, _ := http.NewRequest("POST", "/", nil)
-// 	getReq := restful.NewRequest(httpReq)
-
-// 	recorder := new(httptest.ResponseRecorder)
-// 	resp := restful.NewResponse(recorder)
-
-// 	postUser(req, resp)
-
-// 	assert.Equal(t, 201, recorder.Code)
-// }
-
 func TestGetNonExistingUser(t *testing.T) {
 	buildWebservice()
 
@@ -36,9 +20,9 @@ func TestGetNonExistingUser(t *testing.T) {
 
 	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
 
-	fmt.Println(httpWriter)
 	assert.Equal(t, 404, httpWriter.Code)
-
+	body := httpWriter.Body.String()
+	assert.Equal(t, `"no such user"`, body)
 }
 
 func TestPostUser(t *testing.T) {
@@ -56,6 +40,8 @@ func TestPostUser(t *testing.T) {
 	location := httpWriter.Header().Get("location")
 	assert.Regexp(t, `\d+`, location)
 
+	body := httpWriter.Body.String()
+	assert.Equal(t, `{"username":"viktor"}`, body)
 }
 
 func TestPostAndGetUSer(t *testing.T) {
@@ -74,8 +60,6 @@ func TestPostAndGetUSer(t *testing.T) {
 
 	var location string
 	location = httpWriter.Header().Get("location")
-	fmt.Println("location:")
-	fmt.Println("/" + location)
 
 	getHttpReq, err := http.NewRequest("GET", "/"+location, nil)
 	require.NoError(t, err, "error in test")
@@ -83,5 +67,7 @@ func TestPostAndGetUSer(t *testing.T) {
 	httpWriter = httptest.NewRecorder()
 	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
 	assert.Equal(t, 200, httpWriter.Code)
+	body := httpWriter.Body.String()
+	assert.Equal(t, `{"username":"viktor"}`, body)
 
 }

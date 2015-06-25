@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -10,11 +9,11 @@ import (
 //http://golang-basic.blogspot.co.uk/2014/06/golang-database-step-by-step-guide-on.html
 
 type User struct {
-	username string
+	Username string
 	//	id       int64
 }
 
-func dbWriteNewUser(username string) int64 {
+func dbWriteNewUser(username string) (int64, User) {
 	// todo: make configurable, so test can use in memory db
 	db, err := sql.Open("sqlite3", "./foo.db")
 	checkErr(err)
@@ -29,13 +28,12 @@ func dbWriteNewUser(username string) int64 {
 
 	id, err := res.LastInsertId()
 	checkErr(err)
-	fmt.Printf("put db with id %v\n", id)
 
-	return id
+	return id, User{username}
 }
 
 func dbGetUser(id int64) (User, error) {
-	fmt.Printf("getting db with id %v\n", id)
+	// fmt.Printf("getting db with id %v\n", id)
 	db, err := sql.Open("sqlite3", "./foo.db")
 	checkErr(err)
 	defer db.Close()

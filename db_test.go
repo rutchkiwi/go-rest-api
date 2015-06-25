@@ -7,11 +7,12 @@ import (
 )
 
 func TestDbWrite(t *testing.T) {
-	dbWriteNewUser("user1")
+	_, user := dbWriteNewUser("user1")
+	assert.Equal(t, "user1", user.Username)
 }
 
 func TestDbWriteAndRead(t *testing.T) {
-	id := dbWriteNewUser("user1")
+	id, _ := dbWriteNewUser("user1")
 	user, _ := dbGetUser(id)
-	assert.Equal(t, "user1", user.username)
+	assert.Equal(t, "user1", user.Username)
 }

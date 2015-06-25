@@ -37,20 +37,20 @@ func buildWebservice() {
 }
 
 func getUser(req *restful.Request, resp *restful.Response) {
-	fmt.Println("getting user")
+	// fmt.Println("getting user")
 	restful.DefaultResponseContentType(restful.MIME_JSON)
-	fmt.Printf("getuser by string id %v\n", req.PathParameter("user-id"))
+	// fmt.Printf("getuser by string id %v\n", req.PathParameter("user-id"))
 
 	id, err := strconv.ParseInt(req.PathParameter("user-id"), 0, 64)
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		//TODO: bad error handling here
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.WriteEntity("malformed id") //TODO: json?	}
 		return
 	}
 
-	fmt.Printf("getuser by id %v\n", id)
+	// fmt.Printf("getuser by id %v\n", id)
 	user, err := dbGetUser(id)
 	if err != nil {
 		fmt.Println(err)
@@ -58,19 +58,19 @@ func getUser(req *restful.Request, resp *restful.Response) {
 		resp.WriteHeader(http.StatusNotFound)
 		resp.WriteEntity("no such user") //TODO: json?
 	} else {
+		resp.WriteHeader(http.StatusOK)
 		resp.WriteEntity(user)
 	}
 }
 
 func postUser(req *restful.Request, resp *restful.Response) {
-	fmt.Println("posting user")
+	inputUser := new(User)
+	err := req.ReadEntity(inputUser)
+	checkErr(err)
 
-	restful.DefaultResponseContentType(restful.MIME_JSON)
-	id := dbWriteNewUser("todo")
-	resp.AddHeader("location", strconv.FormatInt(id, 10))
+	restful.DefaultResponseContentType(restful.MIME_JSON) //TODO: move this
+	id, user := dbWriteNewUser(inputUser.Username)
 	resp.WriteHeader(http.StatusCreated)
-	user := User{"todo"}
+	resp.AddHeader("location", strconv.FormatInt(id, 10))
 	resp.WriteEntity(user)
-	fmt.Println("posting user done")
-
 }
