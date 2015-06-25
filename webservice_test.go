@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -40,8 +41,9 @@ func TestPostUser(t *testing.T) {
 	location := httpWriter.Header().Get("location")
 	assert.Regexp(t, `\d+`, location)
 
-	body := httpWriter.Body.String()
-	assert.Equal(t, `{"username":"viktor"}`, body)
+	var user User
+	json.Unmarshal(httpWriter.Body.Bytes(), &user)
+	assert.Equal(t, user, User{"viktor"})
 }
 
 func TestPostAndGetUSer(t *testing.T) {
@@ -67,7 +69,8 @@ func TestPostAndGetUSer(t *testing.T) {
 	httpWriter = httptest.NewRecorder()
 	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
 	assert.Equal(t, 200, httpWriter.Code)
-	body := httpWriter.Body.String()
-	assert.Equal(t, `{"username":"viktor"}`, body)
+	var user User
+	json.Unmarshal(httpWriter.Body.Bytes(), &user)
+	assert.Equal(t, user, User{"viktor"})
 
 }
