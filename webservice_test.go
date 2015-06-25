@@ -41,6 +41,23 @@ func TestGetNonExistingUser(t *testing.T) {
 
 }
 
+func TestPostUser(t *testing.T) {
+	buildWebservice()
+
+	bodyReader := strings.NewReader(`{"username":"viktor"}`)
+	httpRequest, _ := http.NewRequest("POST", "/", bodyReader)
+	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
+
+	httpWriter := httptest.NewRecorder()
+
+	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
+
+	assert.Equal(t, 201, httpWriter.Code)
+	location := httpWriter.Header().Get("location")
+	assert.Regexp(t, `\d+`, location)
+
+}
+
 func TestPostAndGetUSer(t *testing.T) {
 
 	buildWebservice()
