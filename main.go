@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"strconv"
-
-	// "lib/db"
 
 	"github.com/emicklei/go-restful"
 )
+
+// "lib/db"
 
 // This example shows the minimal code needed to get a restful.WebService working.
 //
@@ -24,6 +23,10 @@ import (
 // 	...
 // }
 
+var (
+	database Database
+)
+
 func main() {
 	buildWebservice()
 	http.ListenAndServe(":8080", nil)
@@ -31,27 +34,41 @@ func main() {
 
 func buildWebservice() {
 	ws := new(restful.WebService)
-	ws.Route(ws.GET("/{user-id}").To(getUser))
-	ws.Route(ws.POST("/").To(postUser))
+
+	restful.DefaultRequestContentType(restful.MIME_JSON)
+	restful.DefaultResponseContentType(restful.MIME_JSON)
+	ws.Produces(restful.MIME_JSON)
+	ws.Consumes(restful.MIME_JSON)
+
+	ws.Route(ws.GET("/me").To(getUser))
+	ws.Route(ws.POST("/register").To(postUser))
+
+	database = newInMemoryDb()
+
 	restful.Add(ws)
 }
 
 func getUser(req *restful.Request, resp *restful.Response) {
-	// fmt.Println("getting user")
-	restful.DefaultResponseContentType(restful.MIME_JSON)
-	// fmt.Printf("getuser by string id %v\n", req.PathParameter("user-id"))
-
-	id, err := strconv.ParseInt(req.PathParameter("user-id"), 0, 64)
+	id, err := BasicAuth(req)
 	if err != nil {
-		// fmt.Println(err)
-		//TODO: bad error handling here
-		resp.WriteHeader(http.StatusBadRequest)
-		resp.WriteEntity("malformed id") //TODO: json?	}
+		unauthorized(resp)
 		return
 	}
 
+	// fmt.Println("getting user")
+	// fmt.Printf("getuser by string id %v\n", req.PathParameter("user-id"))
+
+	// id, err := strconv.ParseInt(req.PathParameter("user-id"), 0, 64)
+	// if err != nil {
+	// 	// fmt.Println(err)
+	// 	//TODO: bad error handling here
+	// 	resp.WriteHeader(http.StatusBadRequest)
+	// 	resp.WriteEntity("malformed id") //TODO: json?	}
+	// 	return
+	// }
+
 	// fmt.Printf("getuser by id %v\n", id)
-	user, err := dbGetUser(id)
+	user, err := database.dbGetUser(id)
 	if err != nil {
 		fmt.Println(err)
 		//TODO: bad error handling here
@@ -63,14 +80,17 @@ func getUser(req *restful.Request, resp *restful.Response) {
 	}
 }
 
+type UserRegistration struct {
+	Username, Password string
+}
+
 func postUser(req *restful.Request, resp *restful.Response) {
-	inputUser := new(User)
-	err := req.ReadEntity(inputUser)
+	userRegistration := new(UserRegistration)
+	err := req.ReadEntity(userRegistration)
 	checkErr(err)
 
-	restful.DefaultResponseContentType(restful.MIME_JSON) //TODO: move this
-	id, user := dbWriteNewUser(inputUser.Username)
-	resp.WriteHeader(http.StatusCreated)
-	resp.AddHeader("location", strconv.FormatInt(id, 10))
-	resp.WriteEntity(user)
+	// TODO: remove return vals if not needed
+	database.dbWriteNewUser(userRegistration.Username, userRegistration.Password)
+	resp.WriteHeader(http.StatusOK)
+	resp.WriteEntity("success! See /me to see your info")
 }
