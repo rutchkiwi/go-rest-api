@@ -45,27 +45,14 @@ func TestGetUserMeWrongUsername(t *testing.T) {
 
 func TestPostUser(t *testing.T) {
 	buildWebservice()
-
-	bodyReader := strings.NewReader(`{"username":"viktor", "password":"pass"}`)
-	httpRequest, _ := http.NewRequest("POST", "/register", bodyReader)
-	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
-
-	httpWriter := httptest.NewRecorder()
-
-	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
-
-	assert.Equal(t, 200, httpWriter.Code)
+	registerUser(t)
 
 	// var user User
 	// json.Unmarshal(httpWriter.Body.Bytes(), &user)
 	// assert.Equal(t, user, User{"viktor"})
 }
 
-func TestPostAndGetUser(t *testing.T) {
-
-	buildWebservice()
-
-	//POST register
+func registerUser(t *testing.T) {
 	bodyReader := strings.NewReader(`{"username":"viktor", "password":"pass"}`)
 	httpRequest, _ := http.NewRequest("POST", "/register", bodyReader)
 	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
@@ -75,12 +62,18 @@ func TestPostAndGetUser(t *testing.T) {
 	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
 
 	require.Equal(t, 200, httpWriter.Code)
+}
+
+func TestGetMe(t *testing.T) {
+
+	buildWebservice()
+	registerUser(t)
 
 	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
 
-	httpWriter = httptest.NewRecorder()
+	httpWriter := httptest.NewRecorder()
 	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
 
 	require.Equal(t, 200, httpWriter.Code)
@@ -88,5 +81,19 @@ func TestPostAndGetUser(t *testing.T) {
 	var user User
 	json.Unmarshal(httpWriter.Body.Bytes(), &user)
 	assert.Equal(t, "viktor", user.Username)
+}
 
+func TestGetMeWithWrongPassword(t *testing.T) {
+
+	buildWebservice()
+	registerUser(t)
+
+	//GET /me
+	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
+	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "wrongPass"))
+
+	httpWriter := httptest.NewRecorder()
+	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
+
+	require.Equal(t, 401, httpWriter.Code)
 }
