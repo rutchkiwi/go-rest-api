@@ -53,4 +53,5 @@ func TestSearch(t *testing.T) {
 
 	require.Len(t, actual.Results, 1)
 	assert.Equal(t, "user2", actual.Results[0].Username)
+	assert.True(t, actual.Results[0].Id > 0)
 }

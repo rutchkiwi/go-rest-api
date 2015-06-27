@@ -13,15 +13,21 @@ type Database struct {
 }
 
 func newInMemoryDb() Database {
+	//TODO: you need to use real one in the actual app
 	db, err := sql.Open("sqlite3", "")
 	checkErr(err)
 	// Bootstrap
 	sqlStmt := `
-	create table if not exists user (
-		id integer primary key autoincrement,
-	 	username varchar(64) unique not null,
-	 	password varchar(64) not null --YOLO!
+	CREATE TABLE IF NOT EXISTS user (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+	 	username VARCHAR(64) UNIQUE NOT NULL,
+	 	password VARCHAR(64) NOT NULL --YOLO!
 	 	);
+	CREATE TABLE "connections" (
+		"from" INTEGER NOT NULL REFERENCES "user"("id") ON UPDATE CASCADE ON DELETE CASCADE,
+		"to"   INTEGER NOT NULL REFERENCES "user"("id") ON UPDATE CASCADE ON DELETE CASCADE,
+		PRIMARY KEY ("from", "to")
+	);
 	`
 	_, err = db.Exec(sqlStmt)
 	checkErr(err)
@@ -113,6 +119,22 @@ func (database Database) searchForUsers(query string) []User {
 		checkErr(err)
 		res = append(res, user)
 	}
+
+	return res
+}
+
+func (d Database) connectedUsers(userId int64) []User {
+	res := make([]User, 0)
+
+	// rows, err := database.db.Query("SELECT id, username FROM user WHERE username LIKE ?", query)
+	// checkErr(err)
+	// defer rows.Close()
+	// for rows.Next() {
+	// 	var user User
+	// 	err := rows.Scan(&user.Id, &user.Username)
+	// 	checkErr(err)
+	// 	res = append(res, user)
+	// }
 
 	return res
 }

@@ -42,6 +42,7 @@ func buildWebservice() {
 	ws.Route(ws.GET("/me").To(getUser))
 	ws.Route(ws.POST("/register").To(postUser))
 	ws.Route(ws.GET("/search").To(searchForUsers))
+	ws.Route(ws.GET("/connection").To(listConnectedUsers))
 
 	database = newInMemoryDb()
 
@@ -106,4 +107,16 @@ func searchForUsers(req *restful.Request, resp *restful.Response) {
 	q := req.QueryParameter("q")
 	users := database.searchForUsers(q)
 	resp.WriteEntity(SearchResults{users})
+}
+
+func listConnectedUsers(req *restful.Request, resp *restful.Response) {
+	user, err := BasicAuth(req, database)
+	if err != nil {
+		unauthorized(resp)
+		return
+	}
+
+	connections := database.connectedUsers(user.Id)
+	resp.WriteEntity(connections)
+
 }
