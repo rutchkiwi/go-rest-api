@@ -27,7 +27,15 @@ func TestDbGetUserAndPassword(t *testing.T) {
 	db.dbWriteNewUser("user", "passwd")
 	user, pass, _ := db.dbGetUserAndPasswordForUsername("user")
 	assert.Equal(t, "user", user.Username)
-	assert.Equal(t, "passwd", pass)
+	assert.Equal(t, "passwd", *pass)
+}
+
+func TestDbGetNonExistingUserAndPassword(t *testing.T) {
+	db := newInMemoryDb()
+
+	_, pass, err := db.dbGetUserAndPasswordForUsername("user")
+	assert.Error(t, err)
+	assert.Nil(t, pass)
 }
 
 //TODO: needs test for username wrong (so it doesnt fall back to "")

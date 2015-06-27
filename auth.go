@@ -31,13 +31,13 @@ func BasicAuth(req *restful.Request, db Database) (User, error) {
 	return loggedInUser, nil
 }
 
-func authfn(username, password string, db Database) (User, error) {
+func authfn(username, givenPassword string, db Database) (User, error) {
 	user, actualPassword, err := db.dbGetUserAndPasswordForUsername(username)
 	//TODO: insercure that we return an empty user? (easy to mess up)
 	if err != nil {
 		return User{}, fmt.Errorf("Invalid credentials")
 	}
-	if password == actualPassword { //TODO: secure compare
+	if givenPassword == *actualPassword { //TODO: secure compare
 		return user, nil
 	} else {
 		return User{}, fmt.Errorf("Invalid credentials")

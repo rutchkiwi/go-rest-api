@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetUserMeUnauthorized(t *testing.T) {
+func TestGetUserMeNoAuth(t *testing.T) {
 	buildWebservice()
 
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
@@ -23,8 +23,24 @@ func TestGetUserMeUnauthorized(t *testing.T) {
 	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
 
 	assert.Equal(t, 401, httpWriter.Code)
-	// body := httpWriter.Body.String()
-	// assert.Equal(t, `"no such user"`, body)
+}
+
+func basicAuthEncode(username, password string) string {
+	return "Basic " + base64.StdEncoding.EncodeToString([]byte(username+":"+password))
+}
+
+func TestGetUserMeWrongUsername(t *testing.T) {
+	buildWebservice()
+
+	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
+	//TODO: move into method
+
+	getHttpReq.Header.Set("Authorization", basicAuthEncode("nonExistingUser", "pass"))
+
+	httpWriter := httptest.NewRecorder()
+	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
+
+	assert.Equal(t, 401, httpWriter.Code)
 }
 
 func TestPostUser(t *testing.T) {
@@ -62,9 +78,7 @@ func TestPostAndGetUser(t *testing.T) {
 
 	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
-	//TODO: move into method
-	authToken := "Basic " + base64.StdEncoding.EncodeToString([]byte("viktor:pass"))
-	getHttpReq.Header.Set("Authorization", authToken)
+	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
 
 	httpWriter = httptest.NewRecorder()
 	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)

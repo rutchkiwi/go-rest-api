@@ -78,7 +78,9 @@ func (database Database) dbGetUser(id int64) (User, error) {
 	return User{id, username}, nil
 }
 
-func (database Database) dbGetUserAndPasswordForUsername(username string) (User, string, error) {
+// Returns password as a *string, so that it can be Nil (otherwise we'd hade to return "", which could
+// cause security holes when comaring it to other given password strings)
+func (database Database) dbGetUserAndPasswordForUsername(username string) (User, *string, error) {
 	//TODO: create index on username
 	db := database.db
 
@@ -88,11 +90,14 @@ func (database Database) dbGetUserAndPasswordForUsername(username string) (User,
 	var id int64
 	var password string
 	err := row.Scan(&id, &password)
-	checkErr(err)
+
+	if err != nil {
+		return User{}, nil, err
+	}
 
 	//TODO: This needs to be handled in a more secure way
 	// return "WTF", fmt.Errorf("could not find password in db")
-	return User{id, username}, password, nil
+	return User{id, username}, &password, nil
 
 }
 
