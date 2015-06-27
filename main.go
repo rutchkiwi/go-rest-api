@@ -41,6 +41,7 @@ func buildWebservice() {
 
 	ws.Route(ws.GET("/me").To(getUser))
 	ws.Route(ws.POST("/register").To(postUser))
+	ws.Route(ws.GET("/search").To(searchForUsers))
 
 	database = newInMemoryDb()
 
@@ -95,4 +96,14 @@ func postUser(req *restful.Request, resp *restful.Response) {
 	database.dbWriteNewUser(userRegistration.Username, userRegistration.Password)
 	resp.WriteHeader(http.StatusOK)
 	resp.WriteEntity("success! See /me to see your info")
+}
+
+type SearchResults struct {
+	Results []User
+}
+
+func searchForUsers(req *restful.Request, resp *restful.Response) {
+	q := req.QueryParameter("q")
+	users := database.searchForUsers(q)
+	resp.WriteEntity(SearchResults{users})
 }

@@ -25,10 +25,9 @@ func TestSearch(t *testing.T) {
 
 	require.Equal(t, 200, httpWriter.Code)
 
-	var expected map[string]interface{}
-	json.Unmarshal([]byte(`"results":[]`), &expected)
+	expected := SearchResults{make([]User, 0)}
 
-	var actual map[string]interface{}
+	var actual SearchResults
 	json.Unmarshal(httpWriter.Body.Bytes(), &actual)
 
 	assert.Equal(t, expected, actual)

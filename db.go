@@ -98,7 +98,11 @@ func (database Database) dbGetUserAndPasswordForUsername(username string) (User,
 	//TODO: This needs to be handled in a more secure way
 	// return "WTF", fmt.Errorf("could not find password in db")
 	return User{id, username}, &password, nil
+}
 
+func (database Database) searchForUsers(query string) []User {
+	res := make([]User, 0)
+	return res
 }
 
 func checkErr(err error) {
