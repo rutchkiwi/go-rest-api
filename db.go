@@ -115,11 +115,9 @@ func (database Database) connectedUsers(userId int64) []User {
 	res := make([]User, 0)
 
 	rows, err := database.db.Query(`
-		SELECT user2.id, user2.username FROM 
-			USER AS user1 
-			JOIN CONNECTION ON user1.id=connection.fromUser 
-			JOIN user AS user2 ON user2.id = connection.toUser 
-			WHERE user1.id = ?`, userId)
+		SELECT user.id, user.username FROM 
+			connection JOIN user ON user.id = connection.toUser 
+			WHERE connection.fromUser = ?`, userId)
 	checkErr(err)
 	defer rows.Close()
 	for rows.Next() {
