@@ -30,11 +30,11 @@ func newInMemoryDb() Database {
 }
 
 type User struct {
+	id       int64
 	Username string
-	//	id       int64
 }
 
-func (database Database) dbWriteNewUser(username, password string) (int64, User) {
+func (database Database) dbWriteNewUser(username, password string) User {
 	db := database.db
 	// todo: make configurable, so test can use in memory db
 	// sqlStmt := `
@@ -61,7 +61,7 @@ func (database Database) dbWriteNewUser(username, password string) (int64, User)
 	id, err := res.LastInsertId()
 	checkErr(err)
 
-	return id, User{username}
+	return User{id, username}
 }
 
 func (database Database) dbGetUser(id int64) (User, error) {
@@ -75,21 +75,24 @@ func (database Database) dbGetUser(id int64) (User, error) {
 		return User{}, err
 	}
 
-	return User{username}, nil
+	return User{id, username}, nil
 }
 
-func (database Database) dbGetPasswordForUsername(username string) (string, error) {
+func (database Database) dbGetUserAndPasswordForUsername(username string) (User, string, error) {
 	//TODO: create index on username
 	db := database.db
 
-	row := db.QueryRow("SELECT password FROM user WHERE username=?", username)
+	//TODO: handle when this doesnt find anything
+	row := db.QueryRow("SELECT id, password FROM user WHERE username=?", username)
 
+	var id int64
 	var password string
-	err := row.Scan(&password)
+	err := row.Scan(&id, &password)
 	checkErr(err)
+
 	//TODO: This needs to be handled in a more secure way
 	// return "WTF", fmt.Errorf("could not find password in db")
-	return password, nil
+	return User{id, username}, password, nil
 
 }
 

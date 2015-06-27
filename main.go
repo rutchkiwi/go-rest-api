@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/emicklei/go-restful"
@@ -49,11 +48,14 @@ func buildWebservice() {
 }
 
 func getUser(req *restful.Request, resp *restful.Response) {
-	id, err := BasicAuth(req)
+	user, err := BasicAuth(req, database)
 	if err != nil {
 		unauthorized(resp)
 		return
 	}
+
+	resp.WriteHeader(http.StatusOK)
+	resp.WriteEntity(user)
 
 	// fmt.Println("getting user")
 	// fmt.Printf("getuser by string id %v\n", req.PathParameter("user-id"))
@@ -68,16 +70,16 @@ func getUser(req *restful.Request, resp *restful.Response) {
 	// }
 
 	// fmt.Printf("getuser by id %v\n", id)
-	user, err := database.dbGetUser(id)
-	if err != nil {
-		fmt.Println(err)
-		//TODO: bad error handling here
-		resp.WriteHeader(http.StatusNotFound)
-		resp.WriteEntity("no such user") //TODO: json?
-	} else {
-		resp.WriteHeader(http.StatusOK)
-		resp.WriteEntity(user)
-	}
+	// user, err := database.dbGetUser(id)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	//TODO: bad error handling here
+	// 	resp.WriteHeader(http.StatusNotFound)
+	// 	resp.WriteEntity("no such user") //TODO: json?
+	// } else {
+	// 	resp.WriteHeader(http.StatusOK)
+	// 	resp.WriteEntity(user)
+	// }
 }
 
 type UserRegistration struct {

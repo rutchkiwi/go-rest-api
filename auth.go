@@ -9,39 +9,38 @@ import (
 	"github.com/emicklei/go-restful"
 )
 
-type LoggedInUser struct {
-	id       int64
-	username string
-}
-
-func BasicAuth(req *restful.Request) (int64, error) {
+func BasicAuth(req *restful.Request, db Database) (User, error) {
 	auth := req.HeaderParameter("Authorization")
 	if len(auth) < 6 || auth[:6] != "Basic " {
-		return -1, fmt.Errorf("invalid basic auth syntax header")
+		return User{}, fmt.Errorf("invalid basic auth syntax header")
 	}
 	b, err := base64.StdEncoding.DecodeString(auth[6:])
 	if err != nil {
-		return -1, err
+		return User{}, err
 	}
 	tokens := strings.SplitN(string(b), ":", 2)
 	if len(tokens) != 2 {
-		return -1, err
+		return User{}, err
 	}
-	loggedInUser, err := authfn(tokens[0], tokens[1])
+	loggedInUser, err := authfn(tokens[0], tokens[1], database)
 	if err != nil {
-		return -1, err
+		return User{}, err
 	}
 
 	//TODO: actual id!
-	return loggedInUser.id, nil
+	return loggedInUser, nil
 }
 
-func authfn(username, password string) (LoggedInUser, error) {
-	//TODO: hook to db
-	if password != "guessme" {
-		return LoggedInUser{}, fmt.Errorf("Invalid credentials")
+func authfn(username, password string, db Database) (User, error) {
+	user, actualPassword, err := db.dbGetUserAndPasswordForUsername(username)
+	//TODO: insercure that we return an empty user? (easy to mess up)
+	if err != nil {
+		return User{}, fmt.Errorf("Invalid credentials")
+	}
+	if password == actualPassword { //TODO: secure compare
+		return user, nil
 	} else {
-		return LoggedInUser{1, username}, nil
+		return User{}, fmt.Errorf("Invalid credentials")
 	}
 }
 

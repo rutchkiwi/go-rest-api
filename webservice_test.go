@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -8,21 +10,22 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// func TestGetNonExistingUser(t *testing.T) {
-// 	buildWebservice()
+func TestGetUserMeUnauthorized(t *testing.T) {
+	buildWebservice()
 
-// 	getHttpReq, _ := http.NewRequest("GET", "/9999", nil)
+	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
 
-// 	httpWriter := httptest.NewRecorder()
+	httpWriter := httptest.NewRecorder()
 
-// 	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
+	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
 
-// 	assert.Equal(t, 404, httpWriter.Code)
-// 	body := httpWriter.Body.String()
-// 	assert.Equal(t, `"no such user"`, body)
-// }
+	assert.Equal(t, 401, httpWriter.Code)
+	// body := httpWriter.Body.String()
+	// assert.Equal(t, `"no such user"`, body)
+}
 
 func TestPostUser(t *testing.T) {
 	buildWebservice()
@@ -42,31 +45,34 @@ func TestPostUser(t *testing.T) {
 	// assert.Equal(t, user, User{"viktor"})
 }
 
-// func TestPostAndGetUser(t *testing.T) {
+func TestPostAndGetUser(t *testing.T) {
 
-// 	buildWebservice()
+	buildWebservice()
 
-// 	bodyReader := strings.NewReader(`{"username":"viktor"}`)
-// 	httpRequest, _ := http.NewRequest("POST", "/", bodyReader)
-// 	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
+	//POST register
+	bodyReader := strings.NewReader(`{"username":"viktor", "password":"pass"}`)
+	httpRequest, _ := http.NewRequest("POST", "/register", bodyReader)
+	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
 
-// 	httpWriter := httptest.NewRecorder()
+	httpWriter := httptest.NewRecorder()
 
-// 	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
+	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
 
-// 	require.Equal(t, 201, httpWriter.Code)
+	require.Equal(t, 200, httpWriter.Code)
 
-// 	var location string
-// 	location = httpWriter.Header().Get("location")
+	//GET /me
+	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
+	//TODO: move into method
+	authToken := "Basic " + base64.StdEncoding.EncodeToString([]byte("viktor:pass"))
+	getHttpReq.Header.Set("Authorization", authToken)
 
-// 	getHttpReq, err := http.NewRequest("GET", "/"+location, nil)
-// 	require.NoError(t, err, "error in test")
+	httpWriter = httptest.NewRecorder()
+	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
 
-// 	httpWriter = httptest.NewRecorder()
-// 	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
-// 	assert.Equal(t, 200, httpWriter.Code)
-// 	var user User
-// 	json.Unmarshal(httpWriter.Body.Bytes(), &user)
-// 	assert.Equal(t, user, User{"viktor"})
+	require.Equal(t, 200, httpWriter.Code)
 
-// }
+	var user User
+	json.Unmarshal(httpWriter.Body.Bytes(), &user)
+	assert.Equal(t, "viktor", user.Username)
+
+}
