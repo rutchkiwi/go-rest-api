@@ -46,9 +46,17 @@ func TestAddConnection(t *testing.T) {
 	addConnection(t, user2Id)
 }
 
+func TestAddConnectionIdempotent(t *testing.T) {
+	buildWebservice()
+	registerUser(t, "viktor", "pass")
+	user2Id := registerUser(t, "user2", "pass")
+
+	addConnection(t, user2Id)
+	addConnection(t, user2Id)
+}
+
 func addConnection(t *testing.T, toUserId int64) {
 	bodyString := fmt.Sprintf(`{"id":%d}`, toUserId)
-	fmt.Println(bodyString)
 	bodyReader := strings.NewReader(bodyString)
 	httpReq, _ := http.NewRequest("PUT", fmt.Sprint("/connection/", toUserId), bodyReader)
 	httpReq.Header.Set("Content-Type", restful.MIME_JSON)
@@ -68,5 +76,6 @@ func TestAddAndListConnections(t *testing.T) {
 	addConnection(t, user2Id)
 
 	connections := listConnections(t)
-	assert.Len(t, connections, 1)
+	require.Len(t, connections, 1)
+	assert.Equal(t, "user2", connections[0].Username)
 }

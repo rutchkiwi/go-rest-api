@@ -134,7 +134,9 @@ func (database Database) connectedUsers(userId int64) []User {
 
 func (database Database) addConnection(from, to int64) {
 	//TODO: handle trying to connect to user who doesnt exist
-	_, err := database.db.Exec("INSERT INTO connection(fromUser, toUser) VALUES(?,?)", from, to)
+	_, err := database.db.Exec(`
+		INSERT OR IGNORE INTO connection(fromUser, toUser) VALUES(?,?)`,
+		from, to)
 	checkErr(err)
 }
 
