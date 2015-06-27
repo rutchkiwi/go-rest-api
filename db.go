@@ -115,7 +115,11 @@ func (database Database) connectedUsers(userId int64) []User {
 	res := make([]User, 0)
 
 	rows, err := database.db.Query(`
-		SELECT id, username FROM user WHERE username LIKE ?`, "fsd")
+		SELECT user2.id, user2.username FROM 
+			USER AS user1 
+			JOIN CONNECTION ON user1.id=connection.fromUser 
+			JOIN user AS user2 ON user2.id = connection.toUser 
+			WHERE user1.id = ?`, userId)
 	checkErr(err)
 	defer rows.Close()
 	for rows.Next() {
@@ -129,7 +133,7 @@ func (database Database) connectedUsers(userId int64) []User {
 }
 
 func (database Database) addConnection(from, to int64) {
-
+	//TODO: handle trying to connect to user who doesnt exist
 	_, err := database.db.Exec("INSERT INTO connection(fromUser, toUser) VALUES(?,?)", from, to)
 	checkErr(err)
 }
