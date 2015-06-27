@@ -17,7 +17,7 @@ func TestDbWriteAndRead(t *testing.T) {
 	db := newInMemoryDb()
 
 	createdUser := db.dbWriteNewUser("user", "passwd")
-	gotUser, _ := db.dbGetUser(createdUser.id)
+	gotUser, _ := db.dbGetUser(createdUser.Id)
 	assert.Equal(t, "user", gotUser.Username)
 }
 

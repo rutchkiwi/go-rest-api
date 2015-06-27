@@ -30,7 +30,7 @@ func newInMemoryDb() Database {
 }
 
 type User struct {
-	id       int64
+	Id       int64
 	Username string
 }
 
@@ -102,6 +102,18 @@ func (database Database) dbGetUserAndPasswordForUsername(username string) (User,
 
 func (database Database) searchForUsers(query string) []User {
 	res := make([]User, 0)
+
+	query = "%" + query + "%"
+	rows, err := database.db.Query("SELECT id, username FROM user WHERE username LIKE ?", query)
+	checkErr(err)
+	defer rows.Close()
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.Id, &user.Username)
+		checkErr(err)
+		res = append(res, user)
+	}
+
 	return res
 }
 

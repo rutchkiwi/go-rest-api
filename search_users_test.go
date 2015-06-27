@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSearch(t *testing.T) {
+func TestSearchNoHits(t *testing.T) {
 
 	buildWebservice()
 	registerUser(t, "viktor", "pass")
@@ -31,4 +31,26 @@ func TestSearch(t *testing.T) {
 	json.Unmarshal(httpWriter.Body.Bytes(), &actual)
 
 	assert.Equal(t, expected, actual)
+}
+
+func TestSearch(t *testing.T) {
+
+	buildWebservice()
+	registerUser(t, "viktor", "pass")
+	registerUser(t, "user2", "pass")
+
+	//GET /me
+	getHttpReq, _ := http.NewRequest("GET", "/search?q=user", nil)
+	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
+
+	httpWriter := httptest.NewRecorder()
+	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
+
+	require.Equal(t, 200, httpWriter.Code)
+
+	var actual SearchResults
+	json.Unmarshal(httpWriter.Body.Bytes(), &actual)
+
+	require.Len(t, actual.Results, 1)
+	assert.Equal(t, "user2", actual.Results[0].Username)
 }
