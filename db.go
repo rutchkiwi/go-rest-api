@@ -45,6 +45,7 @@ type User struct {
 func (database Database) dbWriteNewUser(username, password string) User {
 	db := database.db
 
+	//TODO: merge stmt and exec
 	stmt, err := db.Prepare("INSERT INTO user(username, password) VALUES(?,?)")
 	checkErr(err)
 
