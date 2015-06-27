@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -45,15 +46,16 @@ func TestGetUserMeWrongUsername(t *testing.T) {
 
 func TestPostUser(t *testing.T) {
 	buildWebservice()
-	registerUser(t)
+	registerUser(t, "viktor", "pass")
 
 	// var user User
 	// json.Unmarshal(httpWriter.Body.Bytes(), &user)
 	// assert.Equal(t, user, User{"viktor"})
 }
 
-func registerUser(t *testing.T) {
-	bodyReader := strings.NewReader(`{"username":"viktor", "password":"pass"}`)
+func registerUser(t *testing.T, username, password string) {
+	bodyString := fmt.Sprintf(`{"username":"%s", "password":"%s"}`, username, password)
+	bodyReader := strings.NewReader(bodyString)
 	httpRequest, _ := http.NewRequest("POST", "/register", bodyReader)
 	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
 
@@ -67,7 +69,7 @@ func registerUser(t *testing.T) {
 func TestGetMe(t *testing.T) {
 
 	buildWebservice()
-	registerUser(t)
+	registerUser(t, "viktor", "pass")
 
 	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
@@ -86,7 +88,7 @@ func TestGetMe(t *testing.T) {
 func TestGetMeWithWrongPassword(t *testing.T) {
 
 	buildWebservice()
-	registerUser(t)
+	registerUser(t, "viktor", "pass")
 
 	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
