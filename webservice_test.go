@@ -53,7 +53,9 @@ func TestPostUser(t *testing.T) {
 	// assert.Equal(t, user, User{"viktor"})
 }
 
-func registerUser(t *testing.T, username, password string) {
+//TODO: test for add same user twice
+
+func registerUser(t *testing.T, username, password string) int64 {
 	bodyString := fmt.Sprintf(`{"username":"%s", "password":"%s"}`, username, password)
 	bodyReader := strings.NewReader(bodyString)
 	httpRequest, _ := http.NewRequest("POST", "/register", bodyReader)
@@ -64,6 +66,13 @@ func registerUser(t *testing.T, username, password string) {
 	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
 
 	require.Equal(t, 200, httpWriter.Code)
+
+	var newUser User
+	json.Unmarshal(httpWriter.Body.Bytes(), &newUser)
+	assert.Equal(t, username, newUser.Username)
+	assert.True(t, newUser.Id > 0)
+
+	return newUser.Id
 }
 
 func TestGetMe(t *testing.T) {

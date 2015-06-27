@@ -23,11 +23,13 @@ func newInMemoryDb() Database {
 	 	username VARCHAR(64) UNIQUE NOT NULL,
 	 	password VARCHAR(64) NOT NULL --YOLO!
 	 	);
-	CREATE TABLE "connections" (
-		"from" INTEGER NOT NULL REFERENCES "user"("id") ON UPDATE CASCADE ON DELETE CASCADE,
-		"to"   INTEGER NOT NULL REFERENCES "user"("id") ON UPDATE CASCADE ON DELETE CASCADE,
-		PRIMARY KEY ("from", "to")
+	CREATE TABLE IF NOT EXISTS connection (
+		fromUser INTEGER NOT NULL REFERENCES user(id) ON UPDATE CASCADE ON DELETE CASCADE,
+		toUser   INTEGER NOT NULL REFERENCES user(id) ON UPDATE CASCADE ON DELETE CASCADE,
+		PRIMARY KEY (fromUser, toUser)
 	);
+
+	PRAGMA foreign_keys = ON;
 	`
 	_, err = db.Exec(sqlStmt)
 	checkErr(err)
@@ -42,22 +44,7 @@ type User struct {
 
 func (database Database) dbWriteNewUser(username, password string) User {
 	db := database.db
-	// todo: make configurable, so test can use in memory db
-	// sqlStmt := `
-	// create table user (
-	// 	id integer primary key autoincrement,
-	//  	username varchar(64) unique not null,
-	//  	password varchar(64) not null --YOLO!
-	//  	);
-	// `
-	// _, err = db.Exec(sqlStmt)
-	// if err != nil {
-	// 	log.Printf("%q: %s\n", err, sqlStmt)
-	// 	return
-	// }
 
-	// insert
-	//TODO: password shouldnt be clear text
 	stmt, err := db.Prepare("INSERT INTO user(username, password) VALUES(?,?)")
 	checkErr(err)
 
@@ -123,20 +110,27 @@ func (database Database) searchForUsers(query string) []User {
 	return res
 }
 
-func (d Database) connectedUsers(userId int64) []User {
+func (database Database) connectedUsers(userId int64) []User {
 	res := make([]User, 0)
 
-	// rows, err := database.db.Query("SELECT id, username FROM user WHERE username LIKE ?", query)
-	// checkErr(err)
-	// defer rows.Close()
-	// for rows.Next() {
-	// 	var user User
-	// 	err := rows.Scan(&user.Id, &user.Username)
-	// 	checkErr(err)
-	// 	res = append(res, user)
-	// }
+	rows, err := database.db.Query(`
+		SELECT id, username FROM user WHERE username LIKE ?`, "fsd")
+	checkErr(err)
+	defer rows.Close()
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.Id, &user.Username)
+		checkErr(err)
+		res = append(res, user)
+	}
 
 	return res
+}
+
+func (database Database) addConnection(from, to int64) {
+
+	_, err := database.db.Exec("INSERT INTO connection(fromUser, toUser) VALUES(?,?)", from, to)
+	checkErr(err)
 }
 
 func checkErr(err error) {
