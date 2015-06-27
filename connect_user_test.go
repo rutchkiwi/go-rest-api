@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestListConnections(t *testing.T) {
+func TestListConnectionsEmpty(t *testing.T) {
 	buildWebservice()
 	registerUser(t, "viktor", "pass")
 
@@ -43,7 +43,7 @@ func TestAddConnection(t *testing.T) {
 	registerUser(t, "viktor", "pass")
 	user2Id := registerUser(t, "user2", "pass")
 
-	addConnection(t, user2Id)
+	addConnection(t, "viktor", "pass", user2Id)
 }
 
 func TestAddConnectionIdempotent(t *testing.T) {
@@ -51,16 +51,16 @@ func TestAddConnectionIdempotent(t *testing.T) {
 	registerUser(t, "viktor", "pass")
 	user2Id := registerUser(t, "user2", "pass")
 
-	addConnection(t, user2Id)
-	addConnection(t, user2Id)
+	addConnection(t, "viktor", "pass", user2Id)
+	addConnection(t, "viktor", "pass", user2Id)
 }
 
-func addConnection(t *testing.T, toUserId int64) {
+func addConnection(t *testing.T, fromUsername, fromPassword string, toUserId int64) {
 	bodyString := fmt.Sprintf(`{"id":%d}`, toUserId)
 	bodyReader := strings.NewReader(bodyString)
 	httpReq, _ := http.NewRequest("PUT", fmt.Sprint("/connection/", toUserId), bodyReader)
 	httpReq.Header.Set("Content-Type", restful.MIME_JSON)
-	httpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
+	httpReq.Header.Set("Authorization", basicAuthEncode(fromUsername, fromPassword))
 
 	httpWriter := httptest.NewRecorder()
 	restful.DefaultContainer.ServeHTTP(httpWriter, httpReq)
@@ -68,14 +68,34 @@ func addConnection(t *testing.T, toUserId int64) {
 	require.Equal(t, 200, httpWriter.Code)
 }
 
-func TestAddAndListConnections(t *testing.T) {
+func TestListConnections(t *testing.T) {
 	buildWebservice()
 	registerUser(t, "viktor", "pass")
 	user2Id := registerUser(t, "user2", "pass")
 
-	addConnection(t, user2Id)
+	addConnection(t, "viktor", "pass", user2Id)
 
 	connections := listConnections(t)
 	require.Len(t, connections, 1)
 	assert.Equal(t, "user2", connections[0].Username)
+}
+
+func TestListOnlyMyConnections(t *testing.T) {
+	buildWebservice()
+	viktorId := registerUser(t, "viktor", "pass")
+	user2Id := registerUser(t, "user2", "pass")
+	user3Id := registerUser(t, "user3", "pass")
+
+	addConnection(t, "user2", "pass", viktorId)
+	addConnection(t, "user2", "pass", user2Id)
+	addConnection(t, "user2", "pass", user3Id)
+	addConnection(t, "user3", "pass", user2Id)
+
+	addConnection(t, "viktor", "pass", user2Id)
+	addConnection(t, "viktor", "pass", user3Id)
+
+	connections := listConnections(t)
+	require.Len(t, connections, 2)
+	assert.Contains(t, connections, User{user2Id, "user2"})
+	assert.Contains(t, connections, User{user3Id, "user3"})
 }
