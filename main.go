@@ -33,6 +33,9 @@ func buildWebservice() {
 
 	database = newInMemoryDb()
 
+	// Add admin user
+	database.dbWriteNewUser("admin", "pass")
+
 	restful.Add(ws)
 }
 
