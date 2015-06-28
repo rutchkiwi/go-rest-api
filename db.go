@@ -138,6 +138,40 @@ func (database Database) addConnection(from, to int64) {
 	checkErr(err)
 }
 
+type DbUsersWithConnections map[User][]User
+
+func (database Database) listAllConnections() (res DbUsersWithConnections) {
+	res = make(DbUsersWithConnections)
+
+	rows, err := database.db.Query(`
+		-- Left join because we want users without connections as well
+		SELECT u1.id, u1.username, u2.id, u2.username FROM 
+			user AS u1 LEFT JOIN connection ON u1.id = connection.fromUser
+			LEFT JOIN user AS u2 ON u2.id = connection.toUser
+			ORDER BY u1.id
+			`)
+	checkErr(err)
+	defer rows.Close()
+	for rows.Next() {
+		var fromUser User
+		var toUsername sql.NullString
+		var toId sql.NullInt64
+		err := rows.Scan(&fromUser.Id, &fromUser.Username, &toId, &toUsername)
+		checkErr(err)
+
+		if toId.Valid {
+			// this user has at least one connection, unpack the nullable values
+			toIdValue, _ := toId.Value()
+			toUsernameValue, _ := toUsername.Value()
+			res[fromUser] = append(res[fromUser], User{toIdValue.(int64), toUsernameValue.(string)})
+		} else {
+			// this user doesn't have any connections
+			res[fromUser] = []User{}
+		}
+	}
+	return res
+}
+
 func checkErr(err error) {
 	//TODO: handle
 	if err != nil {

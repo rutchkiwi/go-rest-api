@@ -30,10 +30,12 @@ func buildWebservice() {
 	ws.Route(ws.GET("/search").To(searchForUsers))
 	ws.Route(ws.GET("/connection").To(listConnectedUsers))
 	ws.Route(ws.PUT("/connection/{id}").To(connectToUser))
+	ws.Route(ws.GET("/admin/users").To(listAllUsersWithConnections))
 
 	database = newInMemoryDb()
 
 	// Add admin user
+	//TODO: handle when already added
 	database.dbWriteNewUser("admin", "pass")
 
 	restful.Add(ws)
@@ -113,4 +115,29 @@ func connectToUser(req *restful.Request, resp *restful.Response) {
 
 	// resp.WriteHeader(http.StatusOK)
 	resp.WriteEntity("Connected or was already connected!") //TODO:
+}
+
+//TODO: wtf
+type UserWithConnections struct {
+	User        User
+	Connections []User
+}
+
+func listAllUsersWithConnections(req *restful.Request, resp *restful.Response) {
+	//TODO: remove duplication of auth stuff
+	//TODO: check admin privileges
+	_, err := BasicAuth(req, database)
+	if err != nil {
+		unauthorized(resp)
+		return
+	}
+
+	allConnections := database.listAllConnections()
+
+	res := make([]UserWithConnections, 0)
+	for fromUser, toUsers := range allConnections {
+		res = append(res, UserWithConnections{fromUser, toUsers})
+	}
+
+	resp.WriteEntity(res)
 }
