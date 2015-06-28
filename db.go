@@ -17,11 +17,13 @@ func newInMemoryDb() Database {
 	db, err := sql.Open("sqlite3", "")
 	checkErr(err)
 	// Bootstrap
+	//TODO: fix password storage
 	sqlStmt := `
 	CREATE TABLE IF NOT EXISTS user (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 	 	username VARCHAR(64) UNIQUE NOT NULL,
-	 	password VARCHAR(64) NOT NULL --YOLO!
+	 	password VARCHAR(64) NOT NULL, --YOLO!
+	 	admin BOOLEAN DEFAULT FALSE NOT NULL
 	 	);
 	CREATE TABLE IF NOT EXISTS connection (
 		fromUser INTEGER NOT NULL REFERENCES user(id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -42,6 +44,7 @@ type User struct {
 	Username string
 }
 
+//TODO: remove the db prefix everywhere
 func (database Database) dbWriteNewUser(username, password string) User {
 	db := database.db
 
@@ -58,6 +61,12 @@ func (database Database) dbWriteNewUser(username, password string) User {
 	return User{id, username}
 }
 
+func (database Database) makeAdmin(userId int64) {
+	// sqllite does not have boolean literals, hence the "= 1"
+	_, err := database.db.Exec("UPDATE user SET admin = 1 WHERE id = ?", userId)
+	checkErr(err)
+}
+
 func (database Database) dbGetUser(id int64) (User, error) {
 	db := database.db
 
@@ -72,26 +81,33 @@ func (database Database) dbGetUser(id int64) (User, error) {
 	return User{id, username}, nil
 }
 
+type UserWithPassword struct {
+	user     User
+	password *string
+	isAdmin  bool
+}
+
 // Returns password as a *string, so that it can be Nil (otherwise we'd hade to return "", which could
 // cause security holes when comaring it to other given password strings)
-func (database Database) dbGetUserAndPasswordForUsername(username string) (User, *string, error) {
+func (database Database) dbGetUserAndPasswordForUsername(username string) (UserWithPassword, error) {
 	//TODO: create index on username
 	db := database.db
 
 	//TODO: handle when this doesnt find anything
-	row := db.QueryRow("SELECT id, password FROM user WHERE username=?", username)
+	row := db.QueryRow("SELECT id, password, admin FROM user WHERE username=?", username)
 
 	var id int64
 	var password string
-	err := row.Scan(&id, &password)
+	var isAdmin bool
+	err := row.Scan(&id, &password, &isAdmin)
 
 	if err != nil {
-		return User{}, nil, err
+		return UserWithPassword{}, err
 	}
 
 	//TODO: This needs to be handled in a more secure way
 	// return "WTF", fmt.Errorf("could not find password in db")
-	return User{id, username}, &password, nil
+	return UserWithPassword{User{id, username}, &password, isAdmin}, nil
 }
 
 func (database Database) searchForUsers(query string) []User {

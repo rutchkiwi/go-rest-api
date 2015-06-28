@@ -43,6 +43,20 @@ func TestAdminUsersPage(t *testing.T) {
 	assert.Len(t, users[0].Connections, 0)
 }
 
+func TestAdminUsersPageNotAccessibleUnlessAdmin(t *testing.T) {
+	buildWebservice()
+	registerUser(t, "viktor", "pass")
+
+	getHttpReq, _ := http.NewRequest("GET", "/admin/users", nil)
+
+	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
+
+	httpWriter := httptest.NewRecorder()
+	restful.DefaultContainer.ServeHTTP(httpWriter, getHttpReq)
+
+	require.Equal(t, 401, httpWriter.Code)
+}
+
 func TestAdminUsersPageListsConnections(t *testing.T) {
 	buildWebservice()
 

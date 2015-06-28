@@ -36,20 +36,20 @@ func buildWebservice() {
 
 	// Add admin user
 	//TODO: handle when already added
-	database.dbWriteNewUser("admin", "pass")
+	admin := database.dbWriteNewUser("admin", "pass")
+	database.makeAdmin(admin.Id)
 
 	restful.Add(ws)
 }
 
 func getUser(req *restful.Request, resp *restful.Response) {
-	user, err := BasicAuth(req, database)
+	authenticatedUser, err := BasicAuth(req, database)
 	if err != nil {
 		unauthorized(resp)
 		return
 	}
 
-	resp.WriteHeader(http.StatusOK)
-	resp.WriteEntity(user)
+	resp.WriteEntity(authenticatedUser.user)
 }
 
 type UserRegistration struct {
@@ -79,13 +79,13 @@ func searchForUsers(req *restful.Request, resp *restful.Response) {
 }
 
 func listConnectedUsers(req *restful.Request, resp *restful.Response) {
-	user, err := BasicAuth(req, database)
+	authenticatedUser, err := BasicAuth(req, database)
 	if err != nil {
 		unauthorized(resp)
 		return
 	}
 
-	connections := database.connectedUsers(user.Id)
+	connections := database.connectedUsers(authenticatedUser.user.Id)
 	resp.WriteEntity(connections)
 }
 
@@ -99,7 +99,7 @@ func connectToUser(req *restful.Request, resp *restful.Response) {
 	// 	unauthorized(resp)
 	// 	return
 	// }
-	from, err := BasicAuth(req, database)
+	authenticatedUser, err := BasicAuth(req, database)
 	if err != nil {
 		unauthorized(resp)
 		return
@@ -111,7 +111,7 @@ func connectToUser(req *restful.Request, resp *restful.Response) {
 		checkErr(err) //TODO:
 	}
 
-	database.addConnection(from.Id, connectionRequest.Id)
+	database.addConnection(authenticatedUser.user.Id, connectionRequest.Id)
 
 	// resp.WriteHeader(http.StatusOK)
 	resp.WriteEntity("Connected or was already connected!") //TODO:
@@ -126,8 +126,8 @@ type UserWithConnections struct {
 func listAllUsersWithConnections(req *restful.Request, resp *restful.Response) {
 	//TODO: remove duplication of auth stuff
 	//TODO: check admin privileges
-	_, err := BasicAuth(req, database)
-	if err != nil {
+	authenticatedUser, err := BasicAuth(req, database)
+	if err != nil || !authenticatedUser.isAdmin {
 		unauthorized(resp)
 		return
 	}
