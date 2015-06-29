@@ -8,8 +8,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-//http://golang-basic.blogspot.co.uk/2014/06/golang-database-step-by-step-guide-on.html
-
 type Database struct {
 	db *sql.DB
 }
