@@ -30,7 +30,7 @@ func buildWebservice() {
 	ws.Route(ws.POST("/register").To(postUserRegistration))
 	ws.Route(ws.GET("/search").To(searchForUsers))
 	ws.Route(ws.GET("/connection").To(listConnectedUsers))
-	ws.Route(ws.PUT("/connection/{id}").To(connectToUser))
+	ws.Route(ws.PUT("/connection").To(connectToUser))
 	ws.Route(ws.GET("/admin/users").To(listAllUsersWithConnections))
 
 	database = newInMemoryDb()
@@ -62,9 +62,12 @@ type UserRegistration struct {
 
 func postUserRegistration(req *restful.Request, resp *restful.Response) {
 	userRegistration := new(UserRegistration)
-	//TODO: invalid input causes panic
 	err := req.ReadEntity(userRegistration)
-	checkErr(err)
+	if err != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		resp.WriteEntity(ErrorMsg{err.Error()})
+		return
+	}
 
 	// TODO: remove return vals if not needed
 	var newUser User
@@ -72,8 +75,10 @@ func postUserRegistration(req *restful.Request, resp *restful.Response) {
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.WriteEntity(ErrorMsg{"Username " + userRegistration.Username + " is already taken"})
+		return
 	} else {
 		resp.WriteEntity(newUser)
+		return
 	}
 }
 
@@ -102,12 +107,16 @@ type ConnectionRequest struct {
 	Id int64
 }
 
+func writeBadRequestMsg(resp *restful.Response, err error) {
+	resp.WriteHeader(http.StatusBadRequest)
+	resp.WriteEntity(ErrorMsg{err.Error()})
+}
+
+// Takes a ConnectionRequest json as PUT body
+// Kind of stupid, it would (maybe) be nicer to use the LINK verb (but its obscure)
+// Or at least use PUT connection/<toId> with empty body. Sadly, Go-Restful cant handle
+// empty PUT requests... Kind of regretting my choice of REST framework.
 func connectToUser(req *restful.Request, resp *restful.Response) {
-	// loggedInUser, err := BasicAuth(req, database)
-	// if err != nil {
-	// 	unauthorized(resp)
-	// 	return
-	// }
 	authenticatedUser, err := BasicAuth(req, database)
 	if err != nil {
 		unauthorized(resp)
@@ -117,11 +126,15 @@ func connectToUser(req *restful.Request, resp *restful.Response) {
 	var connectionRequest ConnectionRequest
 	err = req.ReadEntity(&connectionRequest)
 	if err != nil {
-		checkErr(err) //TODO:
+		writeBadRequestMsg(resp, err)
+		return
 	}
 
-	database.addConnection(authenticatedUser.user.Id, connectionRequest.Id)
-
+	err = database.addConnection(authenticatedUser.user.Id, connectionRequest.Id)
+	if err != nil {
+		writeBadRequestMsg(resp, err)
+		return
+	}
 	// resp.WriteHeader(http.StatusOK)
 	resp.WriteEntity("Connected or was already connected!") //TODO:
 }

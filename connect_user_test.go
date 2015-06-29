@@ -55,10 +55,42 @@ func TestAddConnectionIdempotent(t *testing.T) {
 	addConnection(t, "viktor", "pass", user2Id)
 }
 
+func TestAddConnectionBadInput(t *testing.T) {
+	buildWebservice()
+	registerUser(t, "viktor", "pass")
+
+	bodyString := fmt.Sprintf(`{badjson}`)
+	bodyReader := strings.NewReader(bodyString)
+	httpReq, _ := http.NewRequest("PUT", "/connection", bodyReader)
+	httpReq.Header.Set("Content-Type", restful.MIME_JSON)
+	httpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
+
+	httpWriter := httptest.NewRecorder()
+	restful.DefaultContainer.ServeHTTP(httpWriter, httpReq)
+
+	require.Equal(t, 400, httpWriter.Code)
+}
+
+func TestAddConnectionBadId(t *testing.T) {
+	buildWebservice()
+	registerUser(t, "viktor", "pass")
+
+	bodyString := fmt.Sprintf(`{"id":%d}`, 999)
+	bodyReader := strings.NewReader(bodyString)
+	httpReq, _ := http.NewRequest("PUT", "/connection", bodyReader)
+	httpReq.Header.Set("Content-Type", restful.MIME_JSON)
+	httpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
+
+	httpWriter := httptest.NewRecorder()
+	restful.DefaultContainer.ServeHTTP(httpWriter, httpReq)
+
+	require.Equal(t, 400, httpWriter.Code)
+}
+
 func addConnection(t *testing.T, fromUsername, fromPassword string, toUserId int64) {
 	bodyString := fmt.Sprintf(`{"id":%d}`, toUserId)
 	bodyReader := strings.NewReader(bodyString)
-	httpReq, _ := http.NewRequest("PUT", fmt.Sprint("/connection/", toUserId), bodyReader)
+	httpReq, _ := http.NewRequest("PUT", "/connection", bodyReader)
 	httpReq.Header.Set("Content-Type", restful.MIME_JSON)
 	httpReq.Header.Set("Authorization", basicAuthEncode(fromUsername, fromPassword))
 

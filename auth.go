@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -38,11 +39,13 @@ func BasicAuth(req *restful.Request, db Database) (AuthenticatedUser, error) {
 
 func authfn(username, givenPassword string, db Database) (AuthenticatedUser, error) {
 	userWithPassword, err := db.getUserAndPasswordForUsername(username)
-	//TODO: insercure that we return an empty user? (easy to mess up)
 	if err != nil {
 		return AuthenticatedUser{}, fmt.Errorf("Invalid credentials")
 	}
-	if givenPassword == *(userWithPassword.password) { //TODO: secure compare
+	passwordsMatch := subtle.ConstantTimeCompare(
+		[]byte(givenPassword),
+		[]byte(*(userWithPassword.password))) == 1
+	if passwordsMatch {
 		return AuthenticatedUser{userWithPassword.user, userWithPassword.isAdmin}, nil
 	} else {
 		return AuthenticatedUser{}, fmt.Errorf("Invalid credentials")

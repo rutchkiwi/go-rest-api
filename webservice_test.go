@@ -89,6 +89,19 @@ func registerUser(t *testing.T, username, password string) int64 {
 	return newUser.Id
 }
 
+func TestRegisterUserBadInput(t *testing.T) {
+	bodyString := fmt.Sprintf(`sdfsdfs`)
+	bodyReader := strings.NewReader(bodyString)
+	httpRequest, _ := http.NewRequest("POST", "/register", bodyReader)
+	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
+
+	httpWriter := httptest.NewRecorder()
+
+	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
+
+	assert.Equal(t, 400, httpWriter.Code)
+}
+
 func TestGetMe(t *testing.T) {
 
 	buildWebservice()

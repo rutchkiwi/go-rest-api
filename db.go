@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -44,17 +45,13 @@ type User struct {
 	Username string
 }
 
-type userAlreadyExistsError struct{ username string }
-
-func (e userAlreadyExistsError) Error() string { return e.username }
-
 func (database Database) writeNewUser(username, password string) (User, error) {
 	db := database.db
 
 	res, err := db.Exec("INSERT INTO user(username, password) VALUES(?,?)", username, password)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return User{}, userAlreadyExistsError{username}
+			return User{}, errors.New("User " + username + " already exists")
 		} else {
 			panic(err)
 		}
@@ -97,7 +94,6 @@ func (database Database) getUserAndPasswordForUsername(username string) (UserWit
 	//TODO: create index on username
 	db := database.db
 
-	//TODO: handle when this doesnt find anything
 	row := db.QueryRow("SELECT id, password, admin FROM user WHERE username=?", username)
 
 	var id int64
@@ -106,11 +102,13 @@ func (database Database) getUserAndPasswordForUsername(username string) (UserWit
 	err := row.Scan(&id, &password, &isAdmin)
 
 	if err != nil {
-		return UserWithPassword{}, err
+		if err == sql.ErrNoRows {
+			return UserWithPassword{}, err
+		} else {
+			panic(err)
+		}
 	}
 
-	//TODO: This needs to be handled in a more secure way
-	// return "WTF", fmt.Errorf("could not find password in db")
 	return UserWithPassword{User{id, username}, &password, isAdmin}, nil
 }
 
@@ -150,12 +148,18 @@ func (database Database) connectedUsers(userId int64) []User {
 	return res
 }
 
-func (database Database) addConnection(from, to int64) {
-	//TODO: handle trying to connect to user who doesnt exist
+func (database Database) addConnection(from, to int64) error {
 	_, err := database.db.Exec(`
 		INSERT OR IGNORE INTO connection(fromUser, toUser) VALUES(?,?)`,
 		from, to)
-	checkErr(err)
+	if err != nil {
+		if strings.Contains(err.Error(), "FOREIGN KEY constraint failed") {
+			return errors.New("No such user")
+		} else {
+			panic(err)
+		}
+	}
+	return nil
 }
 
 type DbUsersWithConnections map[User][]User
@@ -193,7 +197,6 @@ func (database Database) listAllConnections() (res DbUsersWithConnections) {
 }
 
 func checkErr(err error) {
-	//TODO: handle
 	if err != nil {
 		panic(err)
 	}
