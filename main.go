@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -15,6 +16,9 @@ var (
 func main() {
 	buildWebservice(false)
 	enableSwagger()
+	fmt.Println("Now serving on http://localhost:8080")
+	fmt.Println("Documentation availible on http://localhost:8080/apidocs")
+
 	http.ListenAndServe(":8080", nil)
 }
 
