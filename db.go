@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -44,17 +45,21 @@ type User struct {
 	Username string
 }
 
-//TODO: remove the db prefix everywhere
+type userAlreadyExistsError struct{ username string }
+
+func (e userAlreadyExistsError) Error() string { return e.username }
+
 func (database Database) writeNewUser(username, password string) (User, error) {
 	db := database.db
 
-	//TODO: merge stmt and exec
-	stmt, err := db.Prepare("INSERT INTO user(username, password) VALUES(?,?)")
-	checkErr(err)
-
-	res, err := stmt.Exec(username, password)
+	res, err := db.Exec("INSERT INTO user(username, password) VALUES(?,?)", username, password)
 	if err != nil {
-		return User{}, err //TODO: should filter to only right error
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			return User{}, userAlreadyExistsError{username}
+		} else {
+			panic(err)
+		}
+
 	}
 
 	id, err := res.LastInsertId()
