@@ -37,5 +37,3 @@ func TestDbGetNonExistingUserAndPassword(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, userWithPassword.password)
 }
-
-//TODO: needs test for username wrong (so it doesnt fall back to "")

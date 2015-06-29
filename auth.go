@@ -33,7 +33,6 @@ func BasicAuth(req *restful.Request, db Database) (AuthenticatedUser, error) {
 		return AuthenticatedUser{}, err
 	}
 
-	//TODO: actual id!
 	return loggedInUser, nil
 }
 
