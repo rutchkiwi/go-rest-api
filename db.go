@@ -14,13 +14,31 @@ type Database struct {
 	db *sql.DB
 }
 
+func newFileDb() Database {
+	db, err := sql.Open("sqlite3", "app.db")
+	checkErr(err)
+	database := Database{db}
+	database.bootstrap()
+	return database
+}
+
 func newInMemoryDb() Database {
-	//TODO: you need to use real one in the actual app
 	db, err := sql.Open("sqlite3", "")
 	checkErr(err)
-	// Bootstrap
-	//TODO: fix password storage
+	database := Database{db}
+	database.bootstrap()
+	return database
+}
+
+func (database Database) bootstrap() {
+	// Bootstrap db schema
+
+	// TODO: fix password storage
+	// Should be properly hashed/salted..
+	// maybe using http://godoc.org/golang.org/x/crypto/bcrypt
+	// (but doing this in the proper way would take a while)
 	sqlStmt := `
+	PRAGMA foreign_keys = ON;
 	CREATE TABLE IF NOT EXISTS user (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 	 	username VARCHAR(64) UNIQUE NOT NULL,
@@ -32,14 +50,10 @@ func newInMemoryDb() Database {
 		toUser   INTEGER NOT NULL REFERENCES user(id) ON UPDATE CASCADE ON DELETE CASCADE,
 		PRIMARY KEY (fromUser, toUser)
 	);
-
 	CREATE INDEX IF NOT EXISTS usernameIndex ON user(username);
-
-	PRAGMA foreign_keys = ON;
 	`
-	_, err = db.Exec(sqlStmt)
+	_, err := database.db.Exec(sqlStmt)
 	checkErr(err)
-	return Database{db}
 }
 
 type User struct {

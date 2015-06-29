@@ -12,11 +12,11 @@ var (
 )
 
 func main() {
-	buildWebservice()
+	buildWebservice(false)
 	http.ListenAndServe(":8080", nil)
 }
 
-func buildWebservice() {
+func buildWebservice(inMemoryDb bool) {
 	ws := new(restful.WebService)
 
 	restful.EnableTracing(true)
@@ -33,7 +33,11 @@ func buildWebservice() {
 	ws.Route(ws.PUT("/connection").To(connectToUser))
 	ws.Route(ws.GET("/admin/users").To(listAllUsersWithConnections))
 
-	database = newInMemoryDb()
+	if inMemoryDb {
+		database = newInMemoryDb()
+	} else {
+		database = newFileDb()
+	}
 
 	// Add admin user
 	admin, _ := database.writeNewUser("admin", "pass")

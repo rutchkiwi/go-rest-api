@@ -15,7 +15,7 @@ import (
 )
 
 func TestListConnectionsEmpty(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
 	connections := listConnections(t)
@@ -39,7 +39,7 @@ func listConnections(t *testing.T) []User {
 }
 
 func TestAddConnection(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 	user2Id := registerUser(t, "user2", "pass")
 
@@ -47,7 +47,7 @@ func TestAddConnection(t *testing.T) {
 }
 
 func TestAddConnectionIdempotent(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 	user2Id := registerUser(t, "user2", "pass")
 
@@ -56,7 +56,7 @@ func TestAddConnectionIdempotent(t *testing.T) {
 }
 
 func TestAddConnectionBadInput(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
 	bodyString := fmt.Sprintf(`{badjson}`)
@@ -72,7 +72,7 @@ func TestAddConnectionBadInput(t *testing.T) {
 }
 
 func TestAddConnectionBadId(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
 	bodyString := fmt.Sprintf(`{"id":%d}`, 999)
@@ -101,7 +101,7 @@ func addConnection(t *testing.T, fromUsername, fromPassword string, toUserId int
 }
 
 func TestListConnections(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 	user2Id := registerUser(t, "user2", "pass")
 
@@ -113,7 +113,7 @@ func TestListConnections(t *testing.T) {
 }
 
 func TestListOnlyMyConnections(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	viktorId := registerUser(t, "viktor", "pass")
 	user2Id := registerUser(t, "user2", "pass")
 	user3Id := registerUser(t, "user3", "pass")

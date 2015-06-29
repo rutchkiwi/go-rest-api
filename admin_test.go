@@ -12,7 +12,7 @@ import (
 )
 
 func TestLoginInAsAdmin(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
 
@@ -25,7 +25,7 @@ func TestLoginInAsAdmin(t *testing.T) {
 }
 
 func TestAdminUsersPage(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 
 	getHttpReq, _ := http.NewRequest("GET", "/admin/users", nil)
 
@@ -44,7 +44,7 @@ func TestAdminUsersPage(t *testing.T) {
 }
 
 func TestAdminUsersPageNotAccessibleUnlessAdmin(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
 	getHttpReq, _ := http.NewRequest("GET", "/admin/users", nil)
@@ -58,7 +58,7 @@ func TestAdminUsersPageNotAccessibleUnlessAdmin(t *testing.T) {
 }
 
 func TestAdminUsersPageListsConnections(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 
 	//add some connections
 	registerUser(t, "viktor", "pass")

@@ -12,8 +12,7 @@ import (
 )
 
 func TestSearchNoHits(t *testing.T) {
-
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
 	//GET /me
@@ -34,8 +33,7 @@ func TestSearchNoHits(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
-
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 	registerUser(t, "user2", "pass")
 

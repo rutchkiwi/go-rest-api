@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetUserMeNoAuth(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
 
@@ -31,7 +31,7 @@ func basicAuthEncode(username, password string) string {
 }
 
 func TestGetUserMeWrongUsername(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
 	//TODO: move into method
@@ -45,12 +45,12 @@ func TestGetUserMeWrongUsername(t *testing.T) {
 }
 
 func TestPostUser(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 }
 
 func TestPostUserTwice(t *testing.T) {
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
 	bodyString := fmt.Sprintf(`{"username":"%s", "password":"%s"}`, "viktor", "pass")
@@ -103,8 +103,7 @@ func TestRegisterUserBadInput(t *testing.T) {
 }
 
 func TestGetMe(t *testing.T) {
-
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 	registerUser(t, "user2", "pass")
 
@@ -123,8 +122,7 @@ func TestGetMe(t *testing.T) {
 }
 
 func TestGetMeWithWrongPassword(t *testing.T) {
-
-	buildWebservice()
+	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
 	//GET /me
