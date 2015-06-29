@@ -36,7 +36,6 @@ func buildWebservice() {
 	database = newInMemoryDb()
 
 	// Add admin user
-	//TODO: handle when already added
 	admin, _ := database.writeNewUser("admin", "pass")
 	database.makeAdmin(admin.Id)
 
