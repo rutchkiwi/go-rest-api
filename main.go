@@ -36,7 +36,7 @@ func buildWebservice() {
 
 	// Add admin user
 	//TODO: handle when already added
-	admin, _ := database.dbWriteNewUser("admin", "pass")
+	admin, _ := database.writeNewUser("admin", "pass")
 	database.makeAdmin(admin.Id)
 
 	restful.Add(ws)
@@ -68,7 +68,7 @@ func postUserRegistration(req *restful.Request, resp *restful.Response) {
 
 	// TODO: remove return vals if not needed
 	var newUser User
-	newUser, err = database.dbWriteNewUser(userRegistration.Username, userRegistration.Password)
+	newUser, err = database.writeNewUser(userRegistration.Username, userRegistration.Password)
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.WriteEntity(ErrorMsg{"Username " + userRegistration.Username + " is already taken"})

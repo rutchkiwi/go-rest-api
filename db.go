@@ -45,7 +45,7 @@ type User struct {
 }
 
 //TODO: remove the db prefix everywhere
-func (database Database) dbWriteNewUser(username, password string) (User, error) {
+func (database Database) writeNewUser(username, password string) (User, error) {
 	db := database.db
 
 	//TODO: merge stmt and exec
