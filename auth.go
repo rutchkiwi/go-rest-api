@@ -20,7 +20,7 @@ type AuthenticatedUser struct {
 // endpoints.. We could implement this as a function wrapper as well, but this
 // might be confusing instead.
 
-//TODO: Basic auth without SSL/TLS = 😱💣
+//TODO: Basic auth without SSL/TLS = 😱
 func BasicAuth(req *restful.Request, db Database) (AuthenticatedUser, error) {
 	auth := req.HeaderParameter("Authorization")
 	if len(auth) < 6 || auth[:6] != "Basic " {
