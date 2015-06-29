@@ -45,7 +45,7 @@ type User struct {
 }
 
 //TODO: remove the db prefix everywhere
-func (database Database) dbWriteNewUser(username, password string) User {
+func (database Database) dbWriteNewUser(username, password string) (User, error) {
 	db := database.db
 
 	//TODO: merge stmt and exec
@@ -53,12 +53,14 @@ func (database Database) dbWriteNewUser(username, password string) User {
 	checkErr(err)
 
 	res, err := stmt.Exec(username, password)
-	checkErr(err)
+	if err != nil {
+		return User{}, err //TODO: should filter to only right error
+	}
 
 	id, err := res.LastInsertId()
 	checkErr(err)
 
-	return User{id, username}
+	return User{id, username}, nil
 }
 
 func (database Database) makeAdmin(userId int64) {

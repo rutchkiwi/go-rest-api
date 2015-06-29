@@ -47,13 +47,27 @@ func TestGetUserMeWrongUsername(t *testing.T) {
 func TestPostUser(t *testing.T) {
 	buildWebservice()
 	registerUser(t, "viktor", "pass")
-
-	// var user User
-	// json.Unmarshal(httpWriter.Body.Bytes(), &user)
-	// assert.Equal(t, user, User{"viktor"})
 }
 
-//TODO: test for add same user twice
+func TestPostUserTwice(t *testing.T) {
+	buildWebservice()
+	registerUser(t, "viktor", "pass")
+
+	bodyString := fmt.Sprintf(`{"username":"%s", "password":"%s"}`, "viktor", "pass")
+	bodyReader := strings.NewReader(bodyString)
+	httpRequest, _ := http.NewRequest("POST", "/register", bodyReader)
+	httpRequest.Header.Set("Content-Type", restful.MIME_JSON)
+
+	httpWriter := httptest.NewRecorder()
+
+	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
+	//TODO: unprocessable better?
+	require.Equal(t, 400, httpWriter.Code)
+
+	var errorMsg ErrorMsg
+	json.Unmarshal(httpWriter.Body.Bytes(), &errorMsg)
+	assert.Equal(t, "Username viktor is already taken", errorMsg.Message)
+}
 
 func registerUser(t *testing.T, username, password string) int64 {
 	bodyString := fmt.Sprintf(`{"username":"%s", "password":"%s"}`, username, password)

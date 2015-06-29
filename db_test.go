@@ -9,14 +9,14 @@ import (
 func TestDbWrite(t *testing.T) {
 	db := newInMemoryDb()
 
-	user := db.dbWriteNewUser("user1", "passwd1")
+	user, _ := db.dbWriteNewUser("user1", "passwd1")
 	assert.Equal(t, "user1", user.Username)
 }
 
 func TestDbWriteAndRead(t *testing.T) {
 	db := newInMemoryDb()
 
-	createdUser := db.dbWriteNewUser("user", "passwd")
+	createdUser, _ := db.dbWriteNewUser("user", "passwd")
 	gotUser, _ := db.dbGetUser(createdUser.Id)
 	assert.Equal(t, "user", gotUser.Username)
 }

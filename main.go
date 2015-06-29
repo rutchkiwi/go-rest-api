@@ -36,7 +36,7 @@ func buildWebservice() {
 
 	// Add admin user
 	//TODO: handle when already added
-	admin := database.dbWriteNewUser("admin", "pass")
+	admin, _ := database.dbWriteNewUser("admin", "pass")
 	database.makeAdmin(admin.Id)
 
 	restful.Add(ws)
@@ -52,6 +52,10 @@ func getUser(req *restful.Request, resp *restful.Response) {
 	resp.WriteEntity(authenticatedUser.user)
 }
 
+type ErrorMsg struct {
+	Message string
+}
+
 type UserRegistration struct {
 	Username, Password string
 }
@@ -64,8 +68,13 @@ func postUserRegistration(req *restful.Request, resp *restful.Response) {
 
 	// TODO: remove return vals if not needed
 	var newUser User
-	newUser = database.dbWriteNewUser(userRegistration.Username, userRegistration.Password)
-	resp.WriteEntity(newUser)
+	newUser, err = database.dbWriteNewUser(userRegistration.Username, userRegistration.Password)
+	if err != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		resp.WriteEntity(ErrorMsg{"Username " + userRegistration.Username + " is already taken"})
+	} else {
+		resp.WriteEntity(newUser)
+	}
 }
 
 type SearchResults struct {
