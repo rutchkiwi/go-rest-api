@@ -15,6 +15,10 @@ type AuthenticatedUser struct {
 	isAdmin bool
 }
 
+// Call this to check which, if any, user authenticating.
+// It's a bit bad that you need to check the results yourself in the REST
+// endpoints.. We could implement this as a function wrapper as well, but this
+// might be confusing instead.
 func BasicAuth(req *restful.Request, db Database) (AuthenticatedUser, error) {
 	auth := req.HeaderParameter("Authorization")
 	if len(auth) < 6 || auth[:6] != "Basic " {

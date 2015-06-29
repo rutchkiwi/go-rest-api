@@ -24,7 +24,6 @@ func TestListConnectionsEmpty(t *testing.T) {
 }
 
 func listConnections(t *testing.T) []User {
-	//TODO: its wierd that usernbame password are not constants
 	httpReq, _ := http.NewRequest("GET", "/connection", nil)
 	httpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
 

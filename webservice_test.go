@@ -34,8 +34,6 @@ func TestGetUserMeWrongUsername(t *testing.T) {
 	buildWebservice(true)
 
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
-	//TODO: move into method
-
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("nonExistingUser", "pass"))
 
 	httpWriter := httptest.NewRecorder()
@@ -61,7 +59,6 @@ func TestPostUserTwice(t *testing.T) {
 	httpWriter := httptest.NewRecorder()
 
 	restful.DefaultContainer.ServeHTTP(httpWriter, httpRequest)
-	//TODO: unprocessable better?
 	require.Equal(t, 400, httpWriter.Code)
 
 	var errorMsg ErrorMsg

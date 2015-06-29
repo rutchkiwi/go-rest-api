@@ -156,8 +156,6 @@ func (a ById) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ById) Less(i, j int) bool { return a[i].User.Id < a[j].User.Id }
 
 func listAllUsersWithConnections(req *restful.Request, resp *restful.Response) {
-	//TODO: remove duplication of auth stuff
-	//TODO: check admin privileges
 	authenticatedUser, err := BasicAuth(req, database)
 	if err != nil || !authenticatedUser.isAdmin {
 		unauthorized(resp)
