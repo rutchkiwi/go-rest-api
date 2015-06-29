@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/emicklei/go-restful"
 )
@@ -126,11 +127,17 @@ func connectToUser(req *restful.Request, resp *restful.Response) {
 	resp.WriteEntity("Connected or was already connected!") //TODO:
 }
 
-//TODO: wtf
 type UserWithConnections struct {
 	User        User
 	Connections []User
 }
+
+// Enables sorting by id in a list of UserWithConnections
+type ById []UserWithConnections
+
+func (a ById) Len() int           { return len(a) }
+func (a ById) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ById) Less(i, j int) bool { return a[i].User.Id < a[j].User.Id }
 
 func listAllUsersWithConnections(req *restful.Request, resp *restful.Response) {
 	//TODO: remove duplication of auth stuff
@@ -147,6 +154,10 @@ func listAllUsersWithConnections(req *restful.Request, resp *restful.Response) {
 	for fromUser, toUsers := range allConnections {
 		res = append(res, UserWithConnections{fromUser, toUsers})
 	}
+
+	// Go randomizes iteration order in maps, so we need to sort here
+	// (since its nice for users to be sorted by id)
+	sort.Sort(ById(res))
 
 	resp.WriteEntity(res)
 }

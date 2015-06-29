@@ -93,6 +93,7 @@ func TestGetMe(t *testing.T) {
 
 	buildWebservice()
 	registerUser(t, "viktor", "pass")
+	registerUser(t, "user2", "pass")
 
 	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)

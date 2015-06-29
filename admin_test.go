@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -77,6 +78,10 @@ func TestAdminUsersPageListsConnections(t *testing.T) {
 	json.Unmarshal(httpWriter.Body.Bytes(), &users)
 	require.Len(t, users, 3)
 
+	var one int64
+	one = 1
+	fmt.Println(users)
+	require.Equal(t, one, users[0].User.Id)
 	assert.Equal(t, "admin", users[0].User.Username)
 	assert.Len(t, users[0].Connections, 0)
 

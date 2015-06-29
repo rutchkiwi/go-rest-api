@@ -69,7 +69,7 @@ func (database Database) makeAdmin(userId int64) {
 	checkErr(err)
 }
 
-func (database Database) dbGetUser(id int64) (User, error) {
+func (database Database) getUser(id int64) (User, error) {
 	db := database.db
 
 	row := db.QueryRow("SELECT username FROM user WHERE id = ?", id)
@@ -91,7 +91,7 @@ type UserWithPassword struct {
 
 // Returns password as a *string, so that it can be Nil (otherwise we'd hade to return "", which could
 // cause security holes when comaring it to other given password strings)
-func (database Database) dbGetUserAndPasswordForUsername(username string) (UserWithPassword, error) {
+func (database Database) getUserAndPasswordForUsername(username string) (UserWithPassword, error) {
 	//TODO: create index on username
 	db := database.db
 

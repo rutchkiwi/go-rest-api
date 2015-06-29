@@ -37,7 +37,7 @@ func BasicAuth(req *restful.Request, db Database) (AuthenticatedUser, error) {
 }
 
 func authfn(username, givenPassword string, db Database) (AuthenticatedUser, error) {
-	userWithPassword, err := db.dbGetUserAndPasswordForUsername(username)
+	userWithPassword, err := db.getUserAndPasswordForUsername(username)
 	//TODO: insercure that we return an empty user? (easy to mess up)
 	if err != nil {
 		return AuthenticatedUser{}, fmt.Errorf("Invalid credentials")

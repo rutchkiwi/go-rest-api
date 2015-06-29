@@ -17,15 +17,15 @@ func TestDbWriteAndRead(t *testing.T) {
 	db := newInMemoryDb()
 
 	createdUser, _ := db.writeNewUser("user", "passwd")
-	gotUser, _ := db.dbGetUser(createdUser.Id)
+	gotUser, _ := db.getUser(createdUser.Id)
 	assert.Equal(t, "user", gotUser.Username)
 }
 
-func TestDbGetUserAndPassword(t *testing.T) {
+func TestgetUserAndPassword(t *testing.T) {
 	db := newInMemoryDb()
 
 	db.writeNewUser("user", "passwd")
-	user, _ := db.dbGetUserAndPasswordForUsername("user")
+	user, _ := db.getUserAndPasswordForUsername("user")
 	assert.Equal(t, "user", user.user.Username)
 	assert.Equal(t, "passwd", *(user.password))
 }
@@ -33,7 +33,7 @@ func TestDbGetUserAndPassword(t *testing.T) {
 func TestDbGetNonExistingUserAndPassword(t *testing.T) {
 	db := newInMemoryDb()
 
-	userWithPassword, err := db.dbGetUserAndPasswordForUsername("user")
+	userWithPassword, err := db.getUserAndPasswordForUsername("user")
 	assert.Error(t, err)
 	assert.Nil(t, userWithPassword.password)
 }
