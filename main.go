@@ -73,7 +73,6 @@ func postUserRegistration(req *restful.Request, resp *restful.Response) {
 		return
 	}
 
-	// TODO: remove return vals if not needed
 	var newUser User
 	newUser, err = database.writeNewUser(userRegistration.Username, userRegistration.Password)
 	if err != nil {

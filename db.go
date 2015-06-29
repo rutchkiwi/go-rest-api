@@ -36,7 +36,7 @@ func (database Database) bootstrap() {
 	// TODO: fix password storage
 	// Should be properly hashed/salted..
 	// maybe using http://godoc.org/golang.org/x/crypto/bcrypt
-	// (but doing this in the proper way would take a while)
+	// (but doing this in a proper way would take a while)
 	sqlStmt := `
 	PRAGMA foreign_keys = ON;
 	CREATE TABLE IF NOT EXISTS user (
