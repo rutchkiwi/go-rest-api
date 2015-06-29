@@ -37,7 +37,6 @@ func newInMemoryDb() Database {
 	_, err = db.Exec(sqlStmt)
 	checkErr(err)
 	return Database{db}
-	// defer db.Close() todo: neccessary?
 }
 
 type User struct {
@@ -80,10 +79,8 @@ func (database Database) getUser(id int64) (User, error) {
 	row := db.QueryRow("SELECT username FROM user WHERE id = ?", id)
 
 	var username string
-	if err := row.Scan(&username); err != nil {
-		// TODO: bad error handling here
-		return User{}, err
-	}
+	err := row.Scan(&username)
+	checkErr(err)
 
 	return User{id, username}, nil
 }
