@@ -33,6 +33,8 @@ func newInMemoryDb() Database {
 		PRIMARY KEY (fromUser, toUser)
 	);
 
+	CREATE INDEX IF NOT EXISTS usernameIndex ON user(username);
+
 	PRAGMA foreign_keys = ON;
 	`
 	_, err = db.Exec(sqlStmt)
@@ -88,10 +90,9 @@ type UserWithPassword struct {
 	isAdmin  bool
 }
 
-// Returns password as a *string, so that it can be Nil (otherwise we'd hade to return "", which could
-// cause security holes when comaring it to other given password strings)
+// Returns password as a *string, so that it can be Nil (otherwise we'd hade to return "", which
+// would be error prone when comaring it to other given password strings)
 func (database Database) getUserAndPasswordForUsername(username string) (UserWithPassword, error) {
-	//TODO: create index on username
 	db := database.db
 
 	row := db.QueryRow("SELECT id, password, admin FROM user WHERE username=?", username)

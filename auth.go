@@ -41,6 +41,7 @@ func authfn(username, givenPassword string, db Database) (AuthenticatedUser, err
 	if err != nil {
 		return AuthenticatedUser{}, fmt.Errorf("Invalid credentials")
 	}
+	// Use constant time compare to protect against timing attacks
 	passwordsMatch := subtle.ConstantTimeCompare(
 		[]byte(givenPassword),
 		[]byte(*(userWithPassword.password))) == 1
