@@ -27,7 +27,7 @@ func TestLoginInAsAdmin(t *testing.T) {
 func TestAdminUsersPage(t *testing.T) {
 	buildWebservice(true)
 
-	getHttpReq, _ := http.NewRequest("GET", "/admin/users", nil)
+	getHttpReq, _ := http.NewRequest("GET", "/admin/user", nil)
 
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("admin", "pass"))
 
@@ -47,7 +47,7 @@ func TestAdminUsersPageNotAccessibleUnlessAdmin(t *testing.T) {
 	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
-	getHttpReq, _ := http.NewRequest("GET", "/admin/users", nil)
+	getHttpReq, _ := http.NewRequest("GET", "/admin/user", nil)
 
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
 
@@ -65,7 +65,7 @@ func TestAdminUsersPageListsConnections(t *testing.T) {
 	user2Id := registerUser(t, "user2", "pass")
 	addConnection(t, "viktor", "pass", user2Id)
 
-	getHttpReq, _ := http.NewRequest("GET", "/admin/users", nil)
+	getHttpReq, _ := http.NewRequest("GET", "/admin/user", nil)
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("admin", "pass"))
 
 	httpWriter := httptest.NewRecorder()

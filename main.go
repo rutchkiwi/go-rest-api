@@ -14,7 +14,20 @@ var (
 
 func main() {
 	buildWebservice(false)
+	enableSwagger()
 	http.ListenAndServe(":8080", nil)
+}
+
+func enableSwagger() {
+	config := swagger.Config{
+		WebServices: restful.DefaultContainer.RegisteredWebServices(), // you control what services are visible
+		ApiPath:     "/apidocs.json",
+
+		// Optionally, specifiy where the UI is located
+		SwaggerPath: "/apidocs/",
+		//TODO: Must be relative path
+		SwaggerFilePath: "dist/"}
+	swagger.RegisterSwaggerService(config, restful.DefaultContainer)
 }
 
 func buildWebservice(inMemoryDb bool) {
@@ -30,35 +43,28 @@ func buildWebservice(inMemoryDb bool) {
 	ws.Route(ws.GET("/me").
 		Doc("Show your info").
 		To(getUser))
+
 	ws.Route(ws.POST("/register").
 		Doc("Add a user").
-		Reads(UserRegistration{}).
+		Reads(ConnectionRequest{}).
 		To(postUserRegistration))
+
 	ws.Route(ws.GET("/search").
 		Doc("Search for users").
 		Param(ws.QueryParameter("q", "username substring query").DataType("string")).
 		To(searchForUsers))
+
 	ws.Route(ws.GET("/connection").
 		Doc("List your connections").
 		To(listConnectedUsers))
+
 	ws.Route(ws.PUT("/connection").
 		Reads(ConnectionRequest{}).
 		To(connectToUser))
-	ws.Route(ws.GET("/admin/users").
+
+	ws.Route(ws.GET("/admin/user").
 		Doc("(admin only) Lists all users and their connections").
 		To(listAllUsersWithConnections))
-
-	// You can install the Swagger Service which provides a nice Web UI on your REST API
-	// You need to download the Swagger HTML5 assets and change the FilePath location in the config below.
-	// Open http://localhost:8080/apidocs and enter http://localhost:8080/apidocs.json in the api input field.
-	config := swagger.Config{
-		WebServices: []*restful.WebService{ws}, // you control what services are visible
-		ApiPath:     "/apidocs.json",
-
-		// Optionally, specifiy where the UI is located
-		SwaggerPath:     "/apidocs/",
-		SwaggerFilePath: "/Users/vho/dev/dist/"}
-	swagger.RegisterSwaggerService(config, restful.DefaultContainer)
 
 	if inMemoryDb {
 		database = newInMemoryDb()
