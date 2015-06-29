@@ -15,7 +15,6 @@ func TestSearchNoHits(t *testing.T) {
 	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
-	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/search?q=wierdQuery", nil)
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
 
@@ -37,7 +36,6 @@ func TestSearch(t *testing.T) {
 	registerUser(t, "viktor", "pass")
 	registerUser(t, "user2", "pass")
 
-	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/search?q=user", nil)
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
 

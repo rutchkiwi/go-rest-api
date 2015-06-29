@@ -104,7 +104,6 @@ func TestGetMe(t *testing.T) {
 	registerUser(t, "viktor", "pass")
 	registerUser(t, "user2", "pass")
 
-	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "pass"))
 
@@ -122,7 +121,6 @@ func TestGetMeWithWrongPassword(t *testing.T) {
 	buildWebservice(true)
 	registerUser(t, "viktor", "pass")
 
-	//GET /me
 	getHttpReq, _ := http.NewRequest("GET", "/me", nil)
 	getHttpReq.Header.Set("Authorization", basicAuthEncode("viktor", "wrongPass"))
 

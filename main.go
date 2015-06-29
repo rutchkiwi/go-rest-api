@@ -20,12 +20,9 @@ func main() {
 
 func enableSwagger() {
 	config := swagger.Config{
-		WebServices: restful.DefaultContainer.RegisteredWebServices(), // you control what services are visible
-		ApiPath:     "/apidocs.json",
-
-		// Optionally, specifiy where the UI is located
-		SwaggerPath: "/apidocs/",
-		//TODO: Must be relative path
+		WebServices:     restful.DefaultContainer.RegisteredWebServices(), // you control what services are visible
+		ApiPath:         "/apidocs.json",
+		SwaggerPath:     "/apidocs/",
 		SwaggerFilePath: "dist/"}
 	swagger.RegisterSwaggerService(config, restful.DefaultContainer)
 }
